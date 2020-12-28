@@ -22,6 +22,13 @@ class Configs(object):
             else:
                 data_size = pd.read_csv('Multi_client_data/'+str(self.user_num)+'_cifar.csv')
                 data_size = np.array(data_size[0].tolist())*0.8
+            self.D = (data_size / 10) * (32 * (theta_num + 10 * (3 * 32 * 32))) / 1e9
+
+        elif self.data == 'PTB':
+            data_size = np.array([15500, 19500, 21600,  12400, 23958])
+            theta_num = 111760
+            self.D = (data_size / 10) * (32 * (theta_num + 10000)) / 1e9
+
         else:
             theta_num = 21840
             if self.user_num == 5:
@@ -29,8 +36,11 @@ class Configs(object):
             else:
                 data_size = pd.read_csv('Multi_client_data/' + str(self.user_num) + 'mnist.csv')
                 data_size = np.array(data_size['data_size'].tolist())
+            self.D = (data_size / 10) * (32 * (theta_num + 10 * 28 * 28)) / 1e9
 
-        self.D = (data_size / 10) * (32 * (theta_num + 10 * (3 * 32 * 32))) / 1e9
+
+
+
         self.alpha = 0.1
         self.tau = 5
         self.C = 20
@@ -122,15 +132,22 @@ class Configs(object):
 
 if __name__ == '__main__':
     c = Configs('fmnist', 800)
-
-    a = c.acc_increase_list
+    #
+    # a = c.acc_increase_list
+    # c = Configs('mnist', 800)
+    # b = c.acc_increase_list
+    #
+    # a = np.array(a)[0:17]
+    # b = np.array(b)[0:17]
+    #
+    # print(c.loss_list)
+    #
+    # print(3000/np.sum(b))
+    # # print(b)
     c = Configs('mnist', 800)
-    b = c.acc_increase_list
 
-    a = np.array(a)[0:17]
-    b = np.array(b)[0:17]
-
-    print(c.loss_list)
-
-    print(3000/np.sum(b))
-    # print(b)
+    print(c.D)
+    c = Configs('cifar', 800)
+    print(c.D)
+    c = Configs('PTB', 800)
+    print(c.D)
