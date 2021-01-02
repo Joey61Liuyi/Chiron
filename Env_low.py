@@ -41,11 +41,21 @@ class Env_low(object):
         self.time_cmp += self.communication_time
         print("Inner_computing_time", self.time_cmp)
         time_globle = np.max(self.time_cmp)
+        time_idle = time_globle - self.time_cmp
+
+        inner_reward1 = np.sum(time_idle)
+        inner_reward2 = np.average(time_idle*time_idle)
+        inner_reward3 = np.var(self.time_cmp)
+        inner_rewrad4 = math.pow(inner_reward2, 0.5)
+        inner_reward5 = math.log(inner_reward1, 10)
+
+
+
         var = np.var(self.time_cmp)
-        print("Inner_VAR", -var)
+        print("Inner _VAR", -var)
 
         state_ = np.random.uniform(low=0.1, high=1, size=1)[0]*self.amplifier
         self.state = state_
 
 
-        return (-var)/1000, state_
+        return -inner_reward1/1000, state_

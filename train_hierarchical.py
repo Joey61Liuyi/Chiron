@@ -90,14 +90,14 @@ class HRL_Pricing(object):
             alosses.append(sum_aloss / 100)
             closses.append(sum_closs / 100)
 
+        rewards = np.array(rewards)*1000
 
-
-        plt.plot(np.array(rewards) * 1000)
+        plt.plot(rewards)
         plt.ylabel("Time var")
         plt.xlabel("Episodes")
         plt.show()
 
-        plt.plot(np.array(rewards)[-100:] * 1000)
+        plt.plot(rewards[-100:])
         plt.ylabel("Time var last 100")
         plt.xlabel("Episodes")
         plt.show()
@@ -123,7 +123,7 @@ class HRL_Pricing(object):
         plt.show()
         return ppo_inner
 
-    def HRL_train(self):
+    def HRL_train(self, ppo_inner):
 
 
         #todo  HRL training
@@ -132,7 +132,7 @@ class HRL_Pricing(object):
                     self.configs.HAVE_TRAIN, 0)
         # ppo_l = PPO(1, A_DIM, self.configs.BATCH, self.configs.A_UPDATE_STEPS, self.configs.C_UPDATE_STEPS,
         #             self.configs.HAVE_TRAIN, 0)
-        ppo_l = self.inner_pretrain()
+        ppo_l = ppo_inner
 
 
         env = Env_H(self.configs.user_num, self.configs.his_len, self.configs.info_num, self.configs.C, self.configs.D, self.configs.alpha, self.configs.tau, self.configs.lamda, self.configs.budget, self.configs.data, self.configs.amplifier_hrl, self.configs.reducer_hrl, self.configs.delta_max, self.configs.acc_increase_list, self.configs.comunication_time)
@@ -383,13 +383,14 @@ if __name__ == '__main__':
 
     dataset = 'mnist'
     # budget_list = [600, 800, 1000, 1200]
-    budget_list = [400,500,600,700,800]
+    budget_list = [400, 500, 600, 700, 800]
+    # budget_list = [400]
     methods_list = ['Baseline', 'MCPPO', 'HRL']
     acc_data = []
     rounds_data = []
     time_average_data = []
     time_var_data = []
-
+    ppo_l = None
 
     for one in budget_list:
 
@@ -397,21 +398,27 @@ if __name__ == '__main__':
         tf.compat.v1.set_random_seed(2)
         tf.random.set_random_seed(2)
 
+
         configs = Configs(dataset, one)
         hrl = HRL_Pricing(configs)
-        Performance_HRL, Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = hrl.HRL_train()
+
+        if ppo_l == None:
+            ppo_l = hrl.inner_pretrain()
+        Performance_HRL, Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = hrl.HRL_train(ppo_l)
         # Performance_HRL, Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = [], [], [], [], []
         np.random.seed(5)
         tf.compat.v1.set_random_seed(5)
         tf.random.set_random_seed(5)
         #
         Performance_Baseline, Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = hrl.Baseline_train()
+        # Performance_Baseline, Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = [], [], [], [], []
 
         np.random.seed(2)
         tf.compat.v1.set_random_seed(2)
         tf.random.set_random_seed(2)
 
         Performance_MCPPO, Rround_MCPPO, Time_MCPPO, Time_var_MCPPO, Accumulated_reward_MCPPO = hrl.MCPPO_train()
+        # Performance_MCPPO, Rround_MCPPO, Time_MCPPO, Time_var_MCPPO, Accumulated_reward_MCPPO = [], [], [], [], []
 
 
         # hrl.inner_pretrain()
