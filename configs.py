@@ -90,7 +90,40 @@ class Configs(object):
 
         self.comunication_time = np.random.uniform(low=10, high=20, size=self.user_num)
 
-        # self.comunication_time = 0
+
+        federated_info = pd.read_csv('5user_' + self.data + '_5_0.005.csv')
+        performance_metrics = federated_info.columns
+
+        metrics_choice = 1 # TODO [test acc, test loss, train acc, train loss]
+
+        self.test_acc = federated_info[performance_metrics[0]]
+        self.test_loss = federated_info[performance_metrics[1]]
+        self.train_acc = federated_info[performance_metrics[2]]
+        self.train_loss = federated_info[performance_metrics[3]]
+
+        self.performance_list = federated_info[performance_metrics[metrics_choice]]
+        self.performance_increase = []
+
+
+        if metrics_choice%2 == 0:
+            buffer = 0
+            for i in self.performance_list:
+                self.performance_increase.append(i-buffer)
+                buffer = i
+            pass
+        else:
+            if self.data == 'mnist':
+                buffer = -math.log(50)
+            elif self.data == 'cifar':
+                buffer = -math.log(4)
+            else:
+                buffer = -math.log(6)
+
+
+            for i in self.performance_list:
+                self.performance_increase.append(-math.log(i) - buffer)
+                buffer = -math.log(i)
+
 
 
         if self.data == 'mnist':
@@ -131,23 +164,11 @@ class Configs(object):
 
 
 if __name__ == '__main__':
-    c = Configs('fmnist', 800)
-    #
-    # a = c.acc_increase_list
-    # c = Configs('mnist', 800)
-    # b = c.acc_increase_list
-    #
-    # a = np.array(a)[0:17]
-    # b = np.array(b)[0:17]
-    #
-    # print(c.loss_list)
-    #
-    # print(3000/np.sum(b))
-    # # print(b)
+
     c = Configs('mnist', 800)
 
     print(c.D)
-    c = Configs('cifar', 800)
-    print(c.D)
-    c = Configs('PTB', 800)
-    print(c.D)
+    # c = Configs('cifar', 800)
+    # print(c.D)
+    # c = Configs('PTB', 800)
+    # print(c.D)

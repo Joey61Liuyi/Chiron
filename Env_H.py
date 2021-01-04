@@ -81,6 +81,10 @@ class Env_H(object):
         print("HRL_global time", time_globle)
 
         var = np.var(self.time_cmp)
+        time_idle = time_globle - self.time_cmp
+        reward_inner = np.sum(time_idle)
+
+
         print("HRL_Time VAR", var)
 
         # money reduce
@@ -117,4 +121,4 @@ class Env_H(object):
         self.state_h = self.state_h.reshape(-1, )
 
 
-        return -var/100, reward, self.state_h, self.done, profit, time_globle
+        return -reward_inner/100, reward, self.state_h, self.done, profit, time_globle
