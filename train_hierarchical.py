@@ -477,10 +477,10 @@ class HRL_Pricing(object):
 
 if __name__ == '__main__':
 
-    dataset = 'cifar'
+    dataset = 'mnist'
     budget_list = [600, 800, 1000, 1200]
     # budget_list = [400, 500, 600, 700, 800]
-    # budget_list = [400]
+    # budget_list = [6001000]
     methods_list = ['greedy', 'Baseline', 'HRL']
     train_acc_data = []
     train_loss_data = []
@@ -505,9 +505,9 @@ if __name__ == '__main__':
             ppo_l = hrl.inner_pretrain()
         Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = hrl.HRL_train(ppo_l)
         # Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = [], [], [], []
-        np.random.seed(5)
-        tf.compat.v1.set_random_seed(5)
-        tf.random.set_random_seed(5)
+        np.random.seed(2)
+        tf.compat.v1.set_random_seed(2)
+        tf.random.set_random_seed(2)
         #
         Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = hrl.Baseline_train()
         # Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = [], [], [], []
