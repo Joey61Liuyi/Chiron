@@ -226,7 +226,7 @@ class HRL_Pricing(object):
         closses.to_csv(str(self.configs.budget)+'_Critic_loss.csv')
 
 
-        return Performance_list, Round_list, Time_list, Time_var_list, Accumulated_reward_list
+        return Round_list, Time_list, Time_var_list, Accumulated_reward_list
 
     def greedy(self):
 
@@ -249,7 +249,7 @@ class HRL_Pricing(object):
         Actionset_list = []
 
 
-        for ep in self.configs.EP_MAX:
+        for ep in range(self.configs.EP_MAX):
             print(ep)
             cur_state = env.reset()
             sum_accuracy = 0
@@ -384,7 +384,7 @@ class HRL_Pricing(object):
             Time_var_list.append(np.average(Time_var_list_tep))
             Accumulated_reward_list.append(accumulated_reward)
 
-        return Performance_list, Round_list, Time_list, Time_var_list, Accumulated_reward_list
+        return Round_list, Time_list, Time_var_list, Accumulated_reward_list
 
     def MCPPO_train(self):
         env= Env_MCPPO(self.configs.user_num, self.configs.his_len, self.configs.info_num, self.configs.C, self.configs.D, self.configs.alpha, self.configs.tau, self.configs.lamda, self.configs.budget, self.configs.data, self.configs.delta_max, self.configs.acc_increase_list, self.configs.comunication_time, self.configs.amplifier_baseline, self.configs.reducer_baseline)
@@ -474,9 +474,10 @@ class HRL_Pricing(object):
 
 
 
+
 if __name__ == '__main__':
 
-    dataset = 'mnist'
+    dataset = 'cifar'
     budget_list = [600, 800, 1000, 1200]
     # budget_list = [400, 500, 600, 700, 800]
     # budget_list = [400]
@@ -503,13 +504,13 @@ if __name__ == '__main__':
         if ppo_l == None:
             ppo_l = hrl.inner_pretrain()
         Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = hrl.HRL_train(ppo_l)
-        # Performance_HRL, Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = [], [], [], [], []
+        # Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = [], [], [], []
         np.random.seed(5)
         tf.compat.v1.set_random_seed(5)
         tf.random.set_random_seed(5)
         #
         Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = hrl.Baseline_train()
-        # Performance_Baseline, Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = [], [], [], [], []
+        # Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = [], [], [], []
 
         np.random.seed(2)
         tf.compat.v1.set_random_seed(2)
@@ -573,7 +574,7 @@ if __name__ == '__main__':
         # Compare
 
         plt.plot(np.array(Time_var_Baseline), color='black', label='Baseline')
-        plt.plot(np.array(Time_var_greedy), color='blue', label='greedy')
+        # plt.plot(np.array(Time_var_greedy), color='blue', label='greedy')
         plt.plot(np.array(Time_var_HRL), color='red', label='HRL')
         plt.legend()
         plt.xlabel("Episodes")
@@ -581,7 +582,7 @@ if __name__ == '__main__':
         plt.show()
 
         plt.plot(np.array(Time_var_Baseline)[-20:], color='black', label='Baseline')
-        plt.plot(np.array(Time_var_greedy)[-20:], color='blue', label='greedy')
+        # plt.plot(np.array(Time_var_greedy)[-20:], color='blue', label='greedy')
         plt.plot(np.array(Time_var_HRL)[-20:], color='red', label='HRL')
         plt.legend()
         plt.xlabel("Episodes")
@@ -590,7 +591,7 @@ if __name__ == '__main__':
 
 
         plt.plot(np.array(Time_Baseline), color='black', label='Baseline')
-        plt.plot(np.array(Time_greedy), color='blue', label='greedy')
+        # plt.plot(np.array(Time_greedy), color='blue', label='greedy')
         plt.plot(np.array(Time_HRL), color='red', label='HRL')
         plt.legend()
         plt.xlabel("Episodes")
@@ -598,7 +599,7 @@ if __name__ == '__main__':
         plt.show()
 
         plt.plot(np.array(Time_Baseline)[-20:], color='black', label='Baseline')
-        plt.plot(np.array(Time_greedy)[-20:], color='blue', label='greedy')
+        # plt.plot(np.array(Time_greedy)[-20:], color='blue', label='greedy')
         plt.plot(np.array(Time_HRL)[-20:], color='red', label='HRL')
         plt.legend()
         plt.xlabel("Episodes")
@@ -623,7 +624,7 @@ if __name__ == '__main__':
 
 
         plt.plot(np.array(Time_average_Baseline), color='black', label='Baseline')
-        plt.plot(np.array(Time_average_greedy), color='blue', label='greedy')
+        # plt.plot(np.array(Time_average_greedy), color='blue', label='greedy')
         plt.plot(np.array(Time_average_HRL), color='red', label='HRL')
         plt.legend()
         plt.xlabel("Episodes")
@@ -631,7 +632,7 @@ if __name__ == '__main__':
         plt.show()
 
         plt.plot(np.array(Time_average_Baseline)[-20:], color='black', label='Baseline')
-        plt.plot(np.array(Time_average_greedy)[-20:], color='blue', label='greedy')
+        # plt.plot(np.array(Time_average_greedy)[-20:], color='blue', label='greedy')
         plt.plot(np.array(Time_average_HRL)[-20:], color='red', label='HRL')
         plt.legend()
         plt.xlabel("Episodes")

@@ -7,7 +7,11 @@ class Configs(object):
     def __init__(self, data, budget):
 
         self.data = data
-        self.lamda = 4000
+
+        if self.data == 'mnist':
+            self.lamda = 4000
+        elif self.data == 'cifar':
+            self.lamda = 1800
         self.user_num = 5
         self.tau = 5
         self.his_len = 5
@@ -148,18 +152,51 @@ class Configs(object):
 
             self.acc_increase_list = profit_increase
 
-        else:
-            data_info = pd.read_csv('Multi_client_data/'+str(self.user_num)+'user_'+self.data+'_'+str(self.tau)+'_0.005.csv')
-            accuracy_list = data_info['loss'].tolist()
-            num = len(accuracy_list)
-            for i in range(0, num):
-                accuracy_list[i] = -math.log(accuracy_list[i])
+        elif self.data == 'fmnist':
+            Loss = pd.read_csv('tep_fmnist_500.csv')
+            Loss = Loss.to_dict()
+            Loss = Loss['1']
+            loss_list = []
+            for i in Loss:
+                loss_list.append(Loss[i])
 
-            buffer = 0
-            self.acc_increase_list = []
-            for one in accuracy_list:
-                self.acc_increase_list.append(one-buffer)
+            num = len(loss_list)
+            buffer = -math.log(1)
+            profit_increase = []
+
+            self.loss_list = copy.copy(loss_list)
+            for i in range(0, num):
+                loss_list[i] = -math.log(loss_list[i])
+
+            for one in loss_list:
+                profit_increase.append(one - buffer)
                 buffer = one
+
+            self.acc_increase_list = profit_increase
+
+        else:
+
+            Loss = pd.read_csv('tep_cifar_500.csv')
+            Loss = Loss.to_dict()
+            Loss = Loss['1']
+            Loss = self.test_loss
+            loss_list = []
+            for i in Loss:
+                loss_list.append(i)
+
+            num = len(loss_list)
+            buffer = -math.log(3)
+            profit_increase = []
+
+            self.loss_list = copy.copy(loss_list)
+            for i in range(0, num):
+                loss_list[i] = -math.log(loss_list[i])
+
+            for one in loss_list:
+                profit_increase.append(one - buffer)
+                buffer = one
+
+            self.acc_increase_list = profit_increase
 
 
 
