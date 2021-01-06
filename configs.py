@@ -12,6 +12,8 @@ class Configs(object):
             self.lamda = 4000
         elif self.data == 'cifar':
             self.lamda = 1800
+        elif self.data == 'cifar100':
+            self.lamda = 1800
         self.user_num = 5
         self.tau = 5
         self.his_len = 5
@@ -26,6 +28,16 @@ class Configs(object):
             else:
                 data_size = pd.read_csv('Multi_client_data/'+str(self.user_num)+'_cifar.csv')
                 data_size = np.array(data_size[0].tolist())*0.8
+            self.D = (data_size / 10) * (32 * (theta_num + 10 * (3 * 32 * 32))) / 1e9
+
+        elif self.data == 'cifar100':
+            theta_num = 69656
+            if self.user_num == 5:
+                data_size = np.array([40, 38, 32, 46, 44]) * 250 * 0.8
+
+            else:
+                each = 50000 / self.user_num
+                data_size = np.ones(self.user_num) * each
             self.D = (data_size / 10) * (32 * (theta_num + 10 * (3 * 32 * 32))) / 1e9
 
         elif self.data == 'PTB':
@@ -67,15 +79,17 @@ class Configs(object):
         self.budget = budget  #todo
 
 
-        if self.user_num== 5:
+        if self.user_num == 5:
             self.delta_max = np.array([1.4359949, 1.05592623, 1.54966248, 1.43532239, 1.4203678])
         else:
             self.delta_max = np.random.uniform(low=1, high=2, size=self.user_num)
 
 
-        if self.user_num==5:
-            self.amplifier_hrl = 70
-            self.amplifier_baseline = np.array([23, 23, 23, 13, 23])
+        if self.user_num == 5:
+            self.amplifier_hrl = np.sum(self.delta_max * self.tau * self.C * self.D * self.alpha)
+            self.amplifier_baseline = np.max(self.delta_max * self.tau * self.C * self.D * self.alpha) * 10 / 9
+            # self.amplifier_hrl = 70
+            # self.amplifier_baseline = np.array([23, 23, 23, 13, 23])
             # self.amplifier_baseline = 23
         else:
 
@@ -95,7 +109,7 @@ class Configs(object):
         self.comunication_time = np.random.uniform(low=10, high=20, size=self.user_num)
 
 
-        federated_info = pd.read_csv('5user_' + self.data + '_5_0.005.csv')
+        federated_info = pd.read_csv('5user_' + self.data + '_'+str(self.tau)+'_0.005.csv')
         performance_metrics = federated_info.columns
 
         metrics_choice = 1 # TODO [test acc, test loss, train acc, train loss]
@@ -134,19 +148,15 @@ class Configs(object):
             Loss = pd.read_csv('loss_mnist_500.csv')
             Loss = Loss.to_dict()
             Loss = Loss['1']
-            loss_list = []
-            for i in Loss:
-                loss_list.append(Loss[i])
-
-            num = len(loss_list)
-            buffer = -math.log(1)
+            Loss = self.test_loss
+            buffer = -math.log(400)
             profit_increase = []
+            Loss_list = []
+            self.loss_list = copy.copy(Loss)
+            for i in range(0, len(Loss)):
+                Loss_list.append(-math.log(Loss[i]))
 
-            self.loss_list = copy.copy(loss_list)
-            for i in range(0, num):
-                loss_list[i] = -math.log(loss_list[i])
-
-            for one in loss_list:
+            for one in Loss_list:
                 profit_increase.append(one - buffer)
                 buffer = one
 
@@ -177,22 +187,16 @@ class Configs(object):
         else:
 
             Loss = pd.read_csv('tep_cifar_500.csv')
-            Loss = Loss.to_dict()
             Loss = Loss['1']
             Loss = self.test_loss
-            loss_list = []
-            for i in Loss:
-                loss_list.append(i)
-
-            num = len(loss_list)
-            buffer = -math.log(3)
+            buffer = -math.log(400)
             profit_increase = []
+            Loss_list = []
+            self.loss_list = copy.copy(Loss)
+            for i in range(0, len(Loss)):
+                Loss_list.append(-math.log(Loss[i]))
 
-            self.loss_list = copy.copy(loss_list)
-            for i in range(0, num):
-                loss_list[i] = -math.log(loss_list[i])
-
-            for one in loss_list:
+            for one in Loss_list:
                 profit_increase.append(one - buffer)
                 buffer = one
 
@@ -200,11 +204,13 @@ class Configs(object):
 
 
 
+
 if __name__ == '__main__':
 
-    c = Configs('mnist', 800)
+    c = Configs('cifar', 800)
 
-    print(c.D)
+
+    print(c.acc_increase_list)
     # c = Configs('cifar', 800)
     # print(c.D)
     # c = Configs('PTB', 800)

@@ -89,5 +89,9 @@ class Env_Baseline(object):
         state_ = np.array(ob_list)
         state_ = np.reshape(state_, (1,self.user_num,3))
         self.state = np.concatenate((self.state, state_), axis = 0)
+        idle_time = np.sum(time_globle - self.time_cmp)
 
-        return self.state, reward, time_globle, price, reward_compare, self.budget, profit, -np.var(self.time_cmp)
+
+
+
+        return self.state, reward, time_globle, price, reward_compare, self.budget, profit, -idle_time
