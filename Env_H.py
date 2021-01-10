@@ -83,6 +83,7 @@ class Env_H(object):
         var = np.var(self.time_cmp)
         time_idle = time_globle - self.time_cmp
         reward_inner = np.sum(time_idle)
+        time_efficiency = np.sum(self.time_cmp)/(self.user_num * time_globle)
 
 
         print("HRL_Time VAR", var)
@@ -121,4 +122,4 @@ class Env_H(object):
         self.state_h = self.state_h.reshape(-1, )
 
 
-        return -reward_inner/100, reward, self.state_h, self.done, profit, time_globle
+        return -reward_inner/100, reward, self.state_h, self.done, profit, time_globle, time_efficiency

@@ -8,16 +8,17 @@ class Configs(object):
 
         self.data = data
 
-        if self.data == 'mnist':
+        if self.data == 'mnist' or 'fmnist':
             self.lamda = 4000
         elif self.data == 'cifar':
             self.lamda = 1800
         elif self.data == 'cifar100':
             self.lamda = 1800
         self.user_num = 5
-        self.tau = 5
+        self.user_num = 5
         self.his_len = 5
         self.info_num = 3
+        self.tau = 1
 
 
         if self.data == 'cifar':
@@ -50,7 +51,7 @@ class Configs(object):
             if self.user_num == 5:
                 data_size = np.array([10000, 12000, 14000, 8000, 16000]) * 0.8
             else:
-                data_size = pd.read_csv('Multi_client_data/' + str(self.user_num) + 'mnist.csv')
+                data_size = pd.read_csv('Multi_client_data/' + str(self.user_num) + self.data + '.csv')
                 data_size = np.array(data_size['data_size'].tolist())
             self.D = (data_size / 10) * (32 * (theta_num + 10 * 28 * 28)) / 1e9
 
@@ -58,7 +59,7 @@ class Configs(object):
 
 
         self.alpha = 0.1
-        self.tau = 5
+
         self.C = 20
 
 
@@ -109,7 +110,7 @@ class Configs(object):
         self.comunication_time = np.random.uniform(low=10, high=20, size=self.user_num)
 
 
-        federated_info = pd.read_csv('5user_' + self.data + '_'+str(self.tau)+'_0.005.csv')
+        federated_info = pd.read_csv('5user_' + self.data + '_'+str(self.tau)+'_0.001.csv')
         performance_metrics = federated_info.columns
 
         metrics_choice = 1 # TODO [test acc, test loss, train acc, train loss]
@@ -166,19 +167,15 @@ class Configs(object):
             Loss = pd.read_csv('tep_fmnist_500.csv')
             Loss = Loss.to_dict()
             Loss = Loss['1']
-            loss_list = []
-            for i in Loss:
-                loss_list.append(Loss[i])
-
-            num = len(loss_list)
-            buffer = -math.log(1)
+            Loss = self.test_loss
+            buffer = -math.log(400)
             profit_increase = []
+            Loss_list = []
+            self.loss_list = copy.copy(Loss)
+            for i in range(0, len(Loss)):
+                Loss_list.append(-math.log(Loss[i]))
 
-            self.loss_list = copy.copy(loss_list)
-            for i in range(0, num):
-                loss_list[i] = -math.log(loss_list[i])
-
-            for one in loss_list:
+            for one in Loss_list:
                 profit_increase.append(one - buffer)
                 buffer = one
 
@@ -207,8 +204,8 @@ class Configs(object):
 
 if __name__ == '__main__':
 
-    c = Configs('cifar', 800)
-
+    c = Configs('fmnist', 800)
+    print(c.test_acc)
 
     print(c.acc_increase_list)
     # c = Configs('cifar', 800)

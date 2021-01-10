@@ -188,12 +188,12 @@ class HRL_Pricing(object):
                     self.PPO_trainer(ppo_l, buffer_s_low, buffer_a_low, buffer_r_low, dec, A_LR, C_LR, ep, 1, price_total)
 
                 env.set_money(price_total)
-                reward_l, reward_h, state_h_, done, profit, maxtime = env.step(ratio)
+                reward_l, reward_h, state_h_, done, profit, maxtime, time_efficiency = env.step(ratio)
                 # print(reward_l, reward_h, done)
 
                 if done:
                     break
-                time_var_list_tep.append(reward_l*100)
+                time_var_list_tep.append(time_efficiency)
                 accumulated_reward += reward_h
                 time += maxtime
 
@@ -477,210 +477,214 @@ class HRL_Pricing(object):
 
 if __name__ == '__main__':
 
-    dataset = 'cifar100'
-    # budget_list = [600, 800, 1000, 1200]
-    budget_list = [200, 300, 400, 500, 600]
-    # budget_list = [400, 500, 600, 700, 800]
-    # budget_list = [6001000]
-    methods_list = ['greedy', 'Baseline', 'HRL']
-    train_acc_data = []
-    train_loss_data = []
-    test_acc_data = []
-    test_loss_data = []
-    rounds_data = []
-    time_average_data = []
-    time_var_data = []
-    ppo_l = None
+    datasets = ['fmnist', 'cifar']
+    for dataset in datasets:
+        # budget_list = [600, 800, 1000, 1200]
+        if dataset == 'mnist' or 'fmnist':
+            budget_list = [40, 60, 80, 100, 120]
+        else:
+            budget_list = [400, 500, 600, 700, 800]
+        # budget_list = [400, 500, 600, 700, 800]
+        # budget_list = [6001000]
+        methods_list = ['greedy', 'Baseline', 'HRL']
+        train_acc_data = []
+        train_loss_data = []
+        test_acc_data = []
+        test_loss_data = []
+        rounds_data = []
+        time_average_data = []
+        time_var_data = []
+        ppo_l = None
 
-    for one in budget_list:
+        for one in budget_list:
 
-        np.random.seed(2)
-        tf.compat.v1.set_random_seed(2)
-        tf.random.set_random_seed(2)
+            np.random.seed(2)
+            tf.compat.v1.set_random_seed(2)
+            tf.random.set_random_seed(2)
 
 
-        configs = Configs(dataset, one)
-        hrl = HRL_Pricing(configs)
+            configs = Configs(dataset, one)
+            hrl = HRL_Pricing(configs)
 
-        if ppo_l == None:
-            ppo_l = hrl.inner_pretrain()
-        Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = hrl.HRL_train(ppo_l)
-        # Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = [], [], [], []
-        np.random.seed(2)
-        tf.compat.v1.set_random_seed(2)
-        tf.random.set_random_seed(2)
+            if ppo_l == None:
+                ppo_l = hrl.inner_pretrain()
+            Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = hrl.HRL_train(ppo_l)
+            # Rround_HRL, Time_HRL, Time_var_HRL, Accumulated_reward_HRL = [], [], [], []
+            np.random.seed(2)
+            tf.compat.v1.set_random_seed(2)
+            tf.random.set_random_seed(2)
+            #
+            Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = hrl.Baseline_train()
+            # Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = [], [], [], []
+
+            np.random.seed(2)
+            tf.compat.v1.set_random_seed(2)
+            tf.random.set_random_seed(2)
+
+            # Performance_greedy, Rround_greedy, Time_greedy, Time_var_greedy, Accumulated_reward_greedy = hrl.greedy_train()
+            Rround_greedy, Time_greedy, Time_var_greedy, Accumulated_reward_greedy = hrl.greedy()
+
+
+            # hrl.inner_pretrain()
+
+            plt.plot(Accumulated_reward_HRL)
+            plt.ylabel("Accumulated_reward_HRL")
+            plt.xlabel("Episodes")
+            plt.show()
+
+            Accumulated_reward_HRL = pd.DataFrame(Accumulated_reward_HRL, columns=['Accumulated_reward_HRL'])
+            Accumulated_reward_HRL.to_csv(str(one) + 'budget_Reward.csv')
+
+            plt.plot(np.array(Accumulated_reward_HRL)[-200:])
+            plt.ylabel("Accumulated_reward_HRL_CUT")
+            plt.xlabel("Episodes")
+            plt.show()
         #
-        Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = hrl.Baseline_train()
-        # Rround_Baseline, Time_Baseline, Time_var_Baseline, Accumulated_reward_Baseline = [], [], [], []
+            Time_average_Baseline = np.array(Time_Baseline)/np.array(Rround_Baseline)
+            Time_average_greedy = np.array(Time_greedy) / np.array(Rround_greedy)
+            Time_average_HRL = np.array(Time_HRL) / np.array(Rround_HRL)
 
-        np.random.seed(2)
-        tf.compat.v1.set_random_seed(2)
-        tf.random.set_random_seed(2)
+            time_var_data.append([np.average(np.array(Time_var_greedy)[-25:]), np.average(np.array(Time_var_Baseline)[-25:]),
+                                  np.average(np.array(Time_var_HRL)[-25:])])
+            rounds_data.append([np.average(np.array(Rround_greedy)[-25:]), np.average(np.array(Rround_Baseline)[-25:]),
+                                  np.average(np.array(Rround_HRL)[-25:])])
 
-        # Performance_greedy, Rround_greedy, Time_greedy, Time_var_greedy, Accumulated_reward_greedy = hrl.greedy_train()
-        Rround_greedy, Time_greedy, Time_var_greedy, Accumulated_reward_greedy = hrl.greedy()
+            train_acc_data.append([np.average(configs.train_acc[np.array(Rround_greedy)[-25:]]), np.average(configs.train_acc[np.array(Rround_Baseline)[-25:]]), np.average(configs.train_acc[np.array(Rround_HRL)[-25:]])])
+            train_loss_data.append([np.average(configs.train_loss[np.array(Rround_greedy)[-25:]]),
+                                   np.average(configs.train_loss[np.array(Rround_Baseline)[-25:]]),
+                                   np.average(configs.train_loss[np.array(Rround_HRL)[-25:]])])
+            test_acc_data.append([np.average(configs.test_acc[np.array(Rround_greedy)[-25:]]),
+                                   np.average(configs.test_acc[np.array(Rround_Baseline)[-25:]]),
+                                   np.average(configs.test_acc[np.array(Rround_HRL)[-25:]])])
+            test_loss_data.append([np.average(configs.test_loss[np.array(Rround_greedy)[-25:]]),
+                                   np.average(configs.test_loss[np.array(Rround_Baseline)[-25:]]),
+                                   np.average(configs.test_loss[np.array(Rround_HRL)[-25:]])])
+
+            time_average_data.append([np.average(np.array(Time_average_greedy)[-25:]), np.average(np.array(Time_average_Baseline)[-25:]),
+                                  np.average(np.array(Time_average_HRL)[-25:])])
 
 
-        # hrl.inner_pretrain()
+            # check convergence
+            plt.plot(Accumulated_reward_Baseline)
+            plt.ylabel("Accumulated_reward_Baseline")
+            plt.xlabel("Episodes")
+            plt.show()
 
-        plt.plot(Accumulated_reward_HRL)
-        plt.ylabel("Accumulated_reward_HRL")
-        plt.xlabel("Episodes")
+            plt.plot(Accumulated_reward_greedy)
+            plt.ylabel("Accumulated_reward_greedy")
+            plt.xlabel("Episodes")
+            plt.show()
+
+
+            # Compare
+
+            plt.plot(np.array(Time_var_Baseline), color='black', label='Baseline')
+            # plt.plot(np.array(Time_var_greedy), color='blue', label='greedy')
+            plt.plot(np.array(Time_var_HRL), color='red', label='HRL')
+            plt.legend()
+            plt.xlabel("Episodes")
+            plt.title("Time Efficiendy Compare")
+            plt.show()
+
+            plt.plot(np.array(Time_var_Baseline)[-20:], color='black', label='Baseline')
+            # plt.plot(np.array(Time_var_greedy)[-20:], color='blue', label='greedy')
+            plt.plot(np.array(Time_var_HRL)[-20:], color='red', label='HRL')
+            plt.legend()
+            plt.xlabel("Episodes")
+            plt.title("Time Efficiendy Compare (last 20)")
+            plt.show()
+
+
+            plt.plot(np.array(Time_Baseline), color='black', label='Baseline')
+            # plt.plot(np.array(Time_greedy), color='blue', label='greedy')
+            plt.plot(np.array(Time_HRL), color='red', label='HRL')
+            plt.legend()
+            plt.xlabel("Episodes")
+            plt.title("Time total Compare")
+            plt.show()
+
+            plt.plot(np.array(Time_Baseline)[-20:], color='black', label='Baseline')
+            # plt.plot(np.array(Time_greedy)[-20:], color='blue', label='greedy')
+            plt.plot(np.array(Time_HRL)[-20:], color='red', label='HRL')
+            plt.legend()
+            plt.xlabel("Episodes")
+            plt.title("Time total Compare (last 20)")
+            plt.show()
+
+            plt.plot(np.array(Rround_Baseline), color='black', label='Baseline')
+            plt.plot(np.array(Rround_greedy), color='blue', label='greedy')
+            plt.plot(np.array(Rround_HRL), color='red', label='HRL')
+            plt.legend()
+            plt.xlabel("Episodes")
+            plt.title("Rounds Compare")
+            plt.show()
+
+            plt.plot(np.array(Rround_Baseline)[-20:], color='black', label='Baseline')
+            plt.plot(np.array(Rround_greedy)[-20:], color='blue', label='greedy')
+            plt.plot(np.array(Rround_HRL)[-20:], color='red', label='HRL')
+            plt.legend()
+            plt.xlabel("Episodes")
+            plt.title("Rounds Compare (last 20)")
+            plt.show()
+
+
+            plt.plot(np.array(Time_average_Baseline), color='black', label='Baseline')
+            # plt.plot(np.array(Time_average_greedy), color='blue', label='greedy')
+            plt.plot(np.array(Time_average_HRL), color='red', label='HRL')
+            plt.legend()
+            plt.xlabel("Episodes")
+            plt.title("Time average Compare")
+            plt.show()
+
+            plt.plot(np.array(Time_average_Baseline)[-20:], color='black', label='Baseline')
+            # plt.plot(np.array(Time_average_greedy)[-20:], color='blue', label='greedy')
+            plt.plot(np.array(Time_average_HRL)[-20:], color='red', label='HRL')
+            plt.legend()
+            plt.xlabel("Episodes")
+            plt.title("Time average Compare (last 20)")
+            plt.show()
+
+        test_acc_data = pd.DataFrame(test_acc_data, columns=methods_list, index= budget_list)
+        test_acc_data.plot(kind='bar')
+        plt.title('Test ACC')
         plt.show()
+        test_acc_data.to_csv(dataset+'_test_acc_data.csv')
 
-        Accumulated_reward_HRL = pd.DataFrame(Accumulated_reward_HRL, columns=['Accumulated_reward_HRL'])
-        Accumulated_reward_HRL.to_csv(str(one) + 'budget_Reward.csv')
-
-        plt.plot(np.array(Accumulated_reward_HRL)[-200:])
-        plt.ylabel("Accumulated_reward_HRL_CUT")
-        plt.xlabel("Episodes")
+        test_loss_data = pd.DataFrame(test_loss_data, columns=methods_list, index= budget_list)
+        test_loss_data.plot(kind='bar')
+        plt.title('Test Loss')
         plt.show()
-    #
-        Time_average_Baseline = np.array(Time_Baseline)/np.array(Rround_Baseline)
-        Time_average_greedy = np.array(Time_greedy) / np.array(Rround_greedy)
-        Time_average_HRL = np.array(Time_HRL) / np.array(Rround_HRL)
+        test_loss_data.to_csv(dataset+'_test_loss_data.csv')
 
-        time_var_data.append([-np.average(np.array(Time_var_greedy)[-25:]), -np.average(np.array(Time_var_Baseline)[-25:]),
-                              -np.average(np.array(Time_var_HRL)[-25:])])
-        rounds_data.append([np.average(np.array(Rround_greedy)[-25:]), np.average(np.array(Rround_Baseline)[-25:]),
-                              np.average(np.array(Rround_HRL)[-25:])])
-
-        train_acc_data.append([np.average(configs.train_acc[np.array(Rround_greedy)[-25:]]), np.average(configs.train_acc[np.array(Rround_Baseline)[-25:]]), np.average(configs.train_acc[np.array(Rround_HRL)[-25:]])])
-        train_loss_data.append([np.average(configs.train_loss[np.array(Rround_greedy)[-25:]]),
-                               np.average(configs.train_loss[np.array(Rround_Baseline)[-25:]]),
-                               np.average(configs.train_loss[np.array(Rround_HRL)[-25:]])])
-        test_acc_data.append([np.average(configs.test_acc[np.array(Rround_greedy)[-25:]]),
-                               np.average(configs.test_acc[np.array(Rround_Baseline)[-25:]]),
-                               np.average(configs.test_acc[np.array(Rround_HRL)[-25:]])])
-        test_loss_data.append([np.average(configs.test_loss[np.array(Rround_greedy)[-25:]]),
-                               np.average(configs.test_loss[np.array(Rround_Baseline)[-25:]]),
-                               np.average(configs.test_loss[np.array(Rround_HRL)[-25:]])])
-
-        time_average_data.append([np.average(np.array(Time_average_greedy)[-25:]), np.average(np.array(Time_average_Baseline)[-25:]),
-                              np.average(np.array(Time_average_HRL)[-25:])])
-
-
-        # check convergence
-        plt.plot(Accumulated_reward_Baseline)
-        plt.ylabel("Accumulated_reward_Baseline")
-        plt.xlabel("Episodes")
+        train_acc_data = pd.DataFrame(train_acc_data, columns=methods_list, index= budget_list)
+        train_acc_data.plot(kind='bar')
+        plt.title('Train ACC')
         plt.show()
+        train_acc_data.to_csv(dataset+'_train_acc_data.csv')
 
-        plt.plot(Accumulated_reward_greedy)
-        plt.ylabel("Accumulated_reward_greedy")
-        plt.xlabel("Episodes")
+        train_loss_data = pd.DataFrame(train_loss_data, columns=methods_list, index= budget_list)
+        train_loss_data.plot(kind='bar')
+        plt.title('Train Loss')
         plt.show()
+        train_loss_data.to_csv(dataset+'_train_loss_data.csv')
 
-
-        # Compare
-
-        plt.plot(np.array(Time_var_Baseline), color='black', label='Baseline')
-        # plt.plot(np.array(Time_var_greedy), color='blue', label='greedy')
-        plt.plot(np.array(Time_var_HRL), color='red', label='HRL')
-        plt.legend()
-        plt.xlabel("Episodes")
-        plt.title("Time variance Compare")
+        rounds_data = pd.DataFrame(rounds_data, columns=methods_list, index= budget_list)
+        rounds_data.plot(kind='bar')
+        plt.title('Rounds')
         plt.show()
+        rounds_data.to_csv(dataset+'_round_data.csv')
 
-        plt.plot(np.array(Time_var_Baseline)[-20:], color='black', label='Baseline')
-        # plt.plot(np.array(Time_var_greedy)[-20:], color='blue', label='greedy')
-        plt.plot(np.array(Time_var_HRL)[-20:], color='red', label='HRL')
-        plt.legend()
-        plt.xlabel("Episodes")
-        plt.title("Time variance Compare (last 20)")
+        time_average_data = pd.DataFrame(time_average_data, columns=methods_list, index= budget_list)
+        time_average_data.plot(kind='bar')
+        plt.title('Average Time')
         plt.show()
+        time_average_data.to_csv(dataset+'_time_average_data.csv')
 
 
-        plt.plot(np.array(Time_Baseline), color='black', label='Baseline')
-        # plt.plot(np.array(Time_greedy), color='blue', label='greedy')
-        plt.plot(np.array(Time_HRL), color='red', label='HRL')
-        plt.legend()
-        plt.xlabel("Episodes")
-        plt.title("Time total Compare")
+        time_var_data = pd.DataFrame(time_var_data, columns=methods_list, index= budget_list)
+        time_var_data.plot(kind='bar')
+        plt.title('Time Variance')
         plt.show()
-
-        plt.plot(np.array(Time_Baseline)[-20:], color='black', label='Baseline')
-        # plt.plot(np.array(Time_greedy)[-20:], color='blue', label='greedy')
-        plt.plot(np.array(Time_HRL)[-20:], color='red', label='HRL')
-        plt.legend()
-        plt.xlabel("Episodes")
-        plt.title("Time total Compare (last 20)")
-        plt.show()
-
-        plt.plot(np.array(Rround_Baseline), color='black', label='Baseline')
-        plt.plot(np.array(Rround_greedy), color='blue', label='greedy')
-        plt.plot(np.array(Rround_HRL), color='red', label='HRL')
-        plt.legend()
-        plt.xlabel("Episodes")
-        plt.title("Rounds Compare")
-        plt.show()
-
-        plt.plot(np.array(Rround_Baseline)[-20:], color='black', label='Baseline')
-        plt.plot(np.array(Rround_greedy)[-20:], color='blue', label='greedy')
-        plt.plot(np.array(Rround_HRL)[-20:], color='red', label='HRL')
-        plt.legend()
-        plt.xlabel("Episodes")
-        plt.title("Rounds Compare (last 20)")
-        plt.show()
-
-
-        plt.plot(np.array(Time_average_Baseline), color='black', label='Baseline')
-        # plt.plot(np.array(Time_average_greedy), color='blue', label='greedy')
-        plt.plot(np.array(Time_average_HRL), color='red', label='HRL')
-        plt.legend()
-        plt.xlabel("Episodes")
-        plt.title("Time average Compare")
-        plt.show()
-
-        plt.plot(np.array(Time_average_Baseline)[-20:], color='black', label='Baseline')
-        # plt.plot(np.array(Time_average_greedy)[-20:], color='blue', label='greedy')
-        plt.plot(np.array(Time_average_HRL)[-20:], color='red', label='HRL')
-        plt.legend()
-        plt.xlabel("Episodes")
-        plt.title("Time average Compare (last 20)")
-        plt.show()
-
-    test_acc_data = pd.DataFrame(test_acc_data, columns=methods_list, index= budget_list)
-    test_acc_data.plot(kind='bar')
-    plt.title('Test ACC')
-    plt.show()
-    test_acc_data.to_csv(dataset+'_test_acc_data.csv')
-
-    test_loss_data = pd.DataFrame(test_loss_data, columns=methods_list, index= budget_list)
-    test_loss_data.plot(kind='bar')
-    plt.title('Test Loss')
-    plt.show()
-    test_loss_data.to_csv(dataset+'_test_loss_data.csv')
-
-    train_acc_data = pd.DataFrame(train_acc_data, columns=methods_list, index= budget_list)
-    train_acc_data.plot(kind='bar')
-    plt.title('Train ACC')
-    plt.show()
-    train_acc_data.to_csv(dataset+'_train_acc_data.csv')
-
-    train_loss_data = pd.DataFrame(train_loss_data, columns=methods_list, index= budget_list)
-    train_loss_data.plot(kind='bar')
-    plt.title('Train Loss')
-    plt.show()
-    train_loss_data.to_csv(dataset+'_train_loss_data.csv')
-
-    rounds_data = pd.DataFrame(rounds_data, columns=methods_list, index= budget_list)
-    rounds_data.plot(kind='bar')
-    plt.title('Rounds')
-    plt.show()
-    rounds_data.to_csv(dataset+'_round_data.csv')
-
-    time_average_data = pd.DataFrame(time_average_data, columns=methods_list, index= budget_list)
-    time_average_data.plot(kind='bar')
-    plt.title('Average Time')
-    plt.show()
-    time_average_data.to_csv(dataset+'_time_average_data.csv')
-
-
-    time_var_data = pd.DataFrame(time_var_data, columns=methods_list, index= budget_list)
-    time_var_data.plot(kind='bar')
-    plt.title('Time Variance')
-    plt.show()
-    time_var_data.to_csv(dataset+'_time_var_data.csv')
+        time_var_data.to_csv(dataset+'_time_eff_data.csv')
 
 
