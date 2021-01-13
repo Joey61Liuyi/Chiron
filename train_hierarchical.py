@@ -97,6 +97,9 @@ class HRL_Pricing(object):
         plt.xlabel("Episodes")
         plt.show()
 
+        Rewards = pd.DataFrame(rewards, columns=['Inner Rewards'])
+        Rewards.to_csv('Inner_Rewards.csv', index=None)
+
         plt.plot(rewards[-100:])
         plt.ylabel("Time var last 100")
         plt.xlabel("Episodes")
@@ -477,13 +480,11 @@ class HRL_Pricing(object):
 
 if __name__ == '__main__':
 
-    datasets = ['fmnist', 'cifar']
+    datasets = ['mnist']
     for dataset in datasets:
+        print(dataset)
         # budget_list = [600, 800, 1000, 1200]
-        if dataset == 'mnist' or 'fmnist':
-            budget_list = [40, 60, 80, 100, 120]
-        else:
-            budget_list = [400, 500, 600, 700, 800]
+        budget_list = [100]
         # budget_list = [400, 500, 600, 700, 800]
         # budget_list = [6001000]
         methods_list = ['greedy', 'Baseline', 'HRL']
@@ -533,7 +534,7 @@ if __name__ == '__main__':
             plt.show()
 
             Accumulated_reward_HRL = pd.DataFrame(Accumulated_reward_HRL, columns=['Accumulated_reward_HRL'])
-            Accumulated_reward_HRL.to_csv(str(one) + 'budget_Reward.csv')
+            Accumulated_reward_HRL.to_csv(configs.data + str(one) + 'budget_Reward.csv')
 
             plt.plot(np.array(Accumulated_reward_HRL)[-200:])
             plt.ylabel("Accumulated_reward_HRL_CUT")
@@ -683,7 +684,7 @@ if __name__ == '__main__':
 
         time_var_data = pd.DataFrame(time_var_data, columns=methods_list, index= budget_list)
         time_var_data.plot(kind='bar')
-        plt.title('Time Variance')
+        plt.title('Time Efficient')
         plt.show()
         time_var_data.to_csv(dataset+'_time_eff_data.csv')
 

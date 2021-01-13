@@ -10,15 +10,16 @@ class Configs(object):
 
         if self.data == 'mnist' or 'fmnist':
             self.lamda = 4000
+            self.tau = 1
         elif self.data == 'cifar':
             self.lamda = 1800
+            self.tau = 5
         elif self.data == 'cifar100':
             self.lamda = 1800
         self.user_num = 5
         self.user_num = 5
         self.his_len = 5
         self.info_num = 3
-        self.tau = 1
 
 
         if self.data == 'cifar':
