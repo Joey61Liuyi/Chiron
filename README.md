@@ -25,9 +25,10 @@ The greedy, DRL and Chiron methods are all integrated in train.py file. All para
 
 #### Federated Parameters
 * ```data:```       Default: 'mnist'. Options: 'mnist', 'fmnist', 'cifar'
-* ```user_num:```   Default: 100.
+* ```user_num:```   Default: 5.
 * ```gpu:```        Default: 1 (runs on GPU). Can also be set to CPU mode.
-* ```rounds:```     Number of maximum training rounds.
+* ```rounds:```     Default: 150. Number of maximum training rounds.
+* ```local_ep:```   Default: 1. Number of the local epoch for each training round.
 * ```lr:```         Learning rate set to 0.005 by default.
 * ```iid:```        Default: 0. 0 represents iid, and 1 represents non-iid.
 * ```unequal:```    Default: 1. 0 represents equal data split, and 1 represents non-equal data split.
