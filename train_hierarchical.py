@@ -484,7 +484,7 @@ if __name__ == '__main__':
     for dataset in datasets:
         print(dataset)
         # budget_list = [600, 800, 1000, 1200]
-        budget_list = [100]
+        budget_list = [60, 80, 100, 120]
         # budget_list = [400, 500, 600, 700, 800]
         # budget_list = [6001000]
         methods_list = ['greedy', 'Baseline', 'HRL']

@@ -56,14 +56,8 @@ class Configs(object):
                 data_size = np.array(data_size['data_size'].tolist())
             self.D = (data_size / 10) * (32 * (theta_num + 10 * 28 * 28)) / 1e9
 
-
-
-
         self.alpha = 0.1
-
         self.C = 20
-
-
         self.BATCH = 5   #todo
         self.A_UPDATE_STEPS = 5  # origin:5
         self.C_UPDATE_STEPS = 5
