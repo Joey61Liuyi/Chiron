@@ -1,6 +1,6 @@
 # CHIRON
 
-Implementation of ICDCS2020 paper : Incentive-Driven Long-term Optimization for Edge Learning by Hierarchical Reinforcement Mechanism.
+Implementation of ICDCS2021 paper : Incentive-Driven Long-term Optimization for Edge Learning by Hierarchical Reinforcement Mechanism.
 
 Experiments are produced on MNIST, Fashion MNIST and CIFAR10.
 
