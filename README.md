@@ -20,7 +20,7 @@ a directory and write a wrapper on pytorch dataset class.
 
 ## Running the experiments
 
-The FL training process and the pricing strategy training are two offline training. To train the pricing strategy, running federated_main.py in Multi_client_data first to get the FL data first. And use the FL data to train the pricing strategy. 
+The FL training process and the pricing strategy training are two offline training. To train the pricing strategy, running federated_main.py in Multi_client_data first to get the FL data. And use the FL data to train the pricing strategy. 
 The greedy, DRL and Chiron methods are all integrated in train.py file. All parameters can be modified in configs.py
 
 #### Federated Parameters
