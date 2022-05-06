@@ -7,10 +7,13 @@ from DNC_PPO import PPO
 import csv
 import matplotlib.pyplot as plt
 import math
+import wandb
 
 
 def main():
 
+
+    wandb.init(project="ICDCS_EXTENSION", name="Previous version")
     user_num = 5
     C = 20
 
@@ -23,8 +26,9 @@ def main():
     tau = 5
     delta_max = np.array([1.4359949, 1.05592623, 1.54966248, 1.43532239, 1.4203678])
     amplifier = 70
+    comunication_time = np.random.uniform(low=10, high=20, size=user_num)
 
-    env = Env_low(user_num, C, D, alpha, tau, delta_max, amplifier)
+    env = Env_low(user_num, C, D, alpha, tau, delta_max, amplifier, comunication_time)
 
     S_DIM = 1
     A_DIM = user_num
@@ -66,17 +70,17 @@ def main():
         sum_reward = 0
         sum_closs = 0
         sum_aloss = 0
+        time_var = 0
 
         for t in range(EP_LEN):
-            action = ppo.choose_action(cur_state.reshape(-1,S_DIM), dec)
-            reward, next_state = env.step(action)
+            action = ppo.choose_action(np.array(cur_state).reshape(-1,S_DIM), dec)
+            next_state, reward, done, info= env.step(action)
             print("VAR", reward)
             print("==================================================================")
 
             sum_reward += reward
-
+            time_var += info["time_var"]
             reward_step.append(reward)
-
             buffer_a.append(action.copy())
             buffer_s.append(cur_state)
             buffer_r.append(reward)
@@ -99,8 +103,17 @@ def main():
                     closs, aloss = ppo.update(np.vstack(buffer_s), np.vstack(buffer_a), discounted_r, dec, A_LR, C_LR, ep)
                     sum_closs += closs
                     sum_aloss += aloss
+            if done:
+                break
 
         rewards.append(sum_reward/EP_LEN)
+        info = {
+            "epoch": ep,
+            "test_reward": sum_reward/EP_LEN,
+            "best_reward": max(rewards),
+            "time_var": time_var/EP_LEN
+        }
+        wandb.log(info)
         alosses.append(sum_aloss/EP_LEN)
         closses.append(sum_closs/EP_LEN)
 
